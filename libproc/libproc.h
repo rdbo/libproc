@@ -1,6 +1,7 @@
-/*
- * libproc - library to abstract information from /proc
- * by rdbo
+/* ==================================
+ * = libproc - procfs API for Linux =
+ * =                    by rdbo     =
+ * ==================================
  */
 
 #ifndef LIBPROC_H

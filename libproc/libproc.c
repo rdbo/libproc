@@ -1,3 +1,9 @@
+/* ==================================
+ * = libproc - procfs API for Linux =
+ * =                    by rdbo     =
+ * ==================================
+ */
+
 #include "libproc.h"
 #include <stdlib.h>
 #include <dirent.h>
