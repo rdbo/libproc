@@ -8,7 +8,7 @@ Linux API to abstract information from /proc (WIP)
 ## Example
 The following example shows how to get the name of the current process
 through `struct proc`, which contains valuable information about the process,
-such as command line, absoulute path, ppid, tracer pid, state, environment 
+such as command line, absolute path, ppid, tracer pid, state, environment 
 variables and much more.  
 For more examples, look at `tests/tests.c`  
 ```c
