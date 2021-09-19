@@ -17,6 +17,7 @@ int main()
 {
 	char *procpath;
 	char *procname;
+	char *cmdline;
 
 	printf("[*] Processes: { ");
 	proc_enumpids(enum_proc_cb, NULL);
@@ -38,6 +39,8 @@ int main()
 	free(procname);
 	printf("[*] Environment Variables:\n");
 	proc_enumenviron(getpid(), enum_environ_cb, NULL);
+	proc_getcmdline(getpid(), &cmdline, 0);
+	printf("[*] Command Line: %s\n", cmdline);
 
 	getchar();
 

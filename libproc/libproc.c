@@ -11,7 +11,13 @@ struct proc_getauxval_struct {
 	unsigned long value;
 };
 
-static char *get_filebuf(char *path)
+struct proc_getcmdline_struct {
+	char **pcmdlinebuf;
+	size_t maxlen;
+	size_t cmdlen;
+};
+
+static char *_get_filebuf(char *path, size_t *size)
 {
 	int fd;
 	char *filebuf = (char *)NULL;
@@ -33,8 +39,10 @@ static char *get_filebuf(char *path)
 			free(old_filebuf);
 		}
 
-		if (!filebuf)
+		if (!filebuf) {
+			total = 0;
 			break;
+		}
 		
 		memcpy(&filebuf[total], databuf, (size_t)rdsize);
 		total += rdsize;
@@ -43,7 +51,15 @@ static char *get_filebuf(char *path)
 
 	close(fd);
 
+	if (size)
+		*size = total;
+
 	return filebuf;
+}
+
+static char *get_filebuf(char *path)
+{
+	return _get_filebuf(path, (size_t *)NULL);
 }
 
 int proc_enumpids(int(*callback)(pid_t pid, void *arg), void *arg)
@@ -374,4 +390,91 @@ int proc_enumenviron(pid_t pid,
 	free(environ_filebuf);
 
 	return 0;
+}
+
+int proc_enumcmdline(pid_t pid, int(*callback)(char *cmdarg, void *arg),
+		     void *arg)
+{
+	char cmdline_path[64] = { 0 };
+	char *cmdline_filebuf;
+	size_t cmdline_len = 0;
+	char *ptr;
+
+	snprintf(cmdline_path, sizeof(cmdline_path) - 1,
+		 "/proc/%d/cmdline", pid);
+	
+	cmdline_filebuf = _get_filebuf(cmdline_path, &cmdline_len);
+	if (!cmdline_filebuf)
+		return -1;
+	
+	for (ptr = cmdline_filebuf;
+	     (ptrdiff_t)ptr < (ptrdiff_t)&cmdline_filebuf[cmdline_len];
+	     ptr = &ptr[strlen(ptr)], ptr = &ptr[1]) {
+		if (callback(ptr, arg))
+			break;
+	}
+
+	free(cmdline_filebuf);
+
+	return 0;
+}
+
+int _proc_getcmdline_callback(char *cmdarg, void *arg)
+{
+	struct proc_getcmdline_struct *parg;
+	size_t len;
+
+	parg = (struct proc_getcmdline_struct *)arg;
+
+	len = strlen(cmdarg);
+
+	if (parg->maxlen && parg->cmdlen + len + 1 > parg->maxlen)
+		return 1;
+	
+	if (!parg->maxlen) {
+		char *old_cmdlinebuf = *parg->pcmdlinebuf;
+
+		*parg->pcmdlinebuf = calloc(parg->cmdlen + len + 2,
+					    sizeof(char));
+		
+		if (old_cmdlinebuf) {
+			if (*parg->pcmdlinebuf) {
+				strncpy(*parg->pcmdlinebuf, old_cmdlinebuf,
+					parg->cmdlen);
+			}
+
+			free(old_cmdlinebuf);
+		}
+
+		if (!(*parg->pcmdlinebuf)) {
+			parg->cmdlen = 0;
+			return -1;
+		}
+	}
+
+	if (parg->cmdlen) {
+		(*parg->pcmdlinebuf)[parg->cmdlen] = ' ';
+		parg->cmdlen += 1;
+	}
+	strncpy(&(*parg->pcmdlinebuf)[parg->cmdlen], cmdarg, len);
+	parg->cmdlen += len;
+	(*parg->pcmdlinebuf)[parg->cmdlen] = '\x00';
+
+	return 0;
+}
+
+size_t proc_getcmdline(pid_t pid, char **pcmdlinebuf, size_t maxlen)
+{
+	struct proc_getcmdline_struct arg;
+
+	if (!maxlen)
+		*pcmdlinebuf = (char *)NULL;
+	
+	arg.pcmdlinebuf = pcmdlinebuf;
+	arg.maxlen = maxlen;
+	arg.cmdlen = 0;
+
+	proc_enumcmdline(pid, _proc_getcmdline_callback, (void *)&arg);
+
+	return arg.cmdlen;
 }

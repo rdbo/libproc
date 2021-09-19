@@ -69,7 +69,9 @@ size_t proc_getname(pid_t pid, char **pnamebuf, size_t maxlen);
 int proc_enumenviron(pid_t pid,
 		     int(*callback)(char *name, char *value, void *arg),
 		     void *arg);
-size_t proc_getcmdline(pid_t pid, char **pcmdline);
+int proc_enumcmdline(pid_t pid, int(*callback)(char *cmdarg, void *arg),
+		     void *arg);
+size_t proc_getcmdline(pid_t pid, char **pcmdlinebuf, size_t maxlen);
 int proc_enumthreads(int(*callback)(pid_t tid, void *arg), void *arg);
 size_t proc_getthreads(pid_t pid, pid_t **pthreads);
 
