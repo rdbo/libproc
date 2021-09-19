@@ -10,7 +10,7 @@ set(LIBPROC_DIR "${PROJECT_SOURCE_DIR}/libproc")
 set(LIBPROC_SRC "${LIBPROC_DIR}/libproc.c")
 
 if(DEBUG)
-add_compile_options(-g -Wall -Wextra)
+	add_compile_options(-g -Wall -Wextra)
 endif()
 
 if(BUILD_STATIC)

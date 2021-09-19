@@ -17,11 +17,6 @@
 
 #define AT_MAX AT_MINSIGSTKSZ + 1
 
-struct envvar {
-	char *name;
-	char *value;
-};
-
 struct proc {
 	pid_t id;
 	pid_t parent;
@@ -71,7 +66,9 @@ char proc_getstate(pid_t pid);
 unsigned long proc_getplatform(pid_t pid);
 size_t proc_getpath(pid_t pid, char **ppathbuf, size_t maxlen);
 size_t proc_getname(pid_t pid, char **pnamebuf, size_t maxlen);
-size_t proc_getenv(pid_t pid, struct envvar **penvbuf);
+int proc_enumenviron(pid_t pid,
+		     int(*callback)(char *name, char *value, void *arg),
+		     void *arg);
 size_t proc_getcmdline(pid_t pid, char **pcmdline);
 int proc_enumthreads(int(*callback)(pid_t tid, void *arg), void *arg);
 size_t proc_getthreads(pid_t pid, pid_t **pthreads);

@@ -338,9 +338,10 @@ size_t proc_getname(pid_t pid, char **pnamebuf, size_t maxlen)
 	return namelen;
 }
 
-size_t proc_getenv(pid_t pid, struct envvar **penvbuf)
+int proc_enumenviron(pid_t pid,
+		     int(*callback)(char *name, char *value, void *arg),
+		     void *arg)
 {
-	size_t nenvvars = 0;
 	char environ_path[64] = { 0 };
 	char *environ_filebuf;
 	char *ptr;
@@ -350,53 +351,27 @@ size_t proc_getenv(pid_t pid, struct envvar **penvbuf)
 	
 	environ_filebuf = get_filebuf(environ_path);
 	if (!environ_filebuf)
-		return nenvvars;
-	
-	*penvbuf = (struct envvar *)NULL;
+		return -1;
 
 	for (ptr = environ_filebuf; (ptr = strchr(ptr, '=')); ptr = &ptr[1]) {
-		struct envvar envvar;
-		struct envvar *old_envbuf;
-		size_t namelen;
-		size_t vallen;
+		char *name;
+		char *value;
 		char *pequals = ptr;
 
-		while (*ptr != '\x00' || ptr == environ_filebuf)
+		while (ptr != environ_filebuf && ptr[-1] != '\x00')
 			ptr = &ptr[-1];
 		
-		if (*ptr == '\x00')
-			ptr = &ptr[1];
-		
-		/* TODO: Add 'malloc' check */
-		namelen = (size_t)((ptrdiff_t)pequals - (ptrdiff_t)ptr);
-		envvar.name = malloc(namelen + 1);
-		strncpy(envvar.name, ptr, namelen);
-		envvar.name[namelen] = '\x00';
+		name = ptr;
+		value = &pequals[1];
+		*pequals = '\x00';
 
-		ptr = &pequals[1];
-		vallen = strlen(ptr);
-		envvar.value = malloc(vallen + 1);
-		strncpy(envvar.value, ptr, vallen);
-		envvar.value[vallen] = '\x00';
+		if (callback(name, value, arg))
+			break;
 
-		ptr = &ptr[vallen]; /* go to null terminator */
-
-		/* TODO: Add 'calloc' check */
-		old_envbuf = *penvbuf;
-		*penvbuf = calloc(nenvvars + 1, sizeof(struct envvar));
-		
-		if (old_envbuf) {
-			if (*penvbuf) {
-				memcpy(*penvbuf, old_envbuf,
-				       nenvvars * sizeof(struct envvar));
-			}
-		}
-
-		(*penvbuf)[nenvvars] = envvar;
-		++nenvvars;
+		ptr = &value[strlen(value)]; /* go to null terminator */
 	}
 
 	free(environ_filebuf);
 
-	return nenvvars;
+	return 0;
 }

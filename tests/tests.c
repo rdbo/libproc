@@ -7,12 +7,16 @@ int enum_proc_cb(pid_t pid, void *arg)
 	return 0;
 }
 
+int enum_environ_cb(char *name, char *value, void *arg)
+{
+	printf("\t%s=%s\n", name, value);
+	return 0;
+}
+
 int main()
 {
 	char *procpath;
 	char *procname;
-	struct envvar *env;
-	size_t nenvs;
 
 	printf("[*] Processes: { ");
 	proc_enumpids(enum_proc_cb, NULL);
@@ -32,15 +36,8 @@ int main()
 	proc_getname(getpid(), &procname, 0);
 	printf("[*] Process Name: %s\n", procname);
 	free(procname);
-	nenvs = proc_getenv(getpid(), &env);
-	{
-		size_t i;
-		for (i = 0; i < nenvs; ++i) {
-			printf("Name: %s\n", env[i].name);
-			printf("Value: %s\n", env[i].value);
-		}
-	}
-	free(env);
+	printf("[*] Environment Variables:\n");
+	proc_enumenviron(getpid(), enum_environ_cb, NULL);
 
 	getchar();
 
