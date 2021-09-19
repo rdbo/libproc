@@ -478,3 +478,32 @@ size_t proc_getcmdline(pid_t pid, char **pcmdlinebuf, size_t maxlen)
 
 	return arg.cmdlen;
 }
+
+int proc_enumthreads(pid_t pid, int(*callback)(pid_t tid, void *arg),
+		     void *arg)
+{
+	char task_path[64] = { 0 };
+	DIR *taskdir;
+	struct dirent *pdirent;
+
+	snprintf(task_path, sizeof(task_path) - 1, "/proc/%d/task", pid);
+
+	taskdir = opendir(task_path);
+	if (!taskdir)
+		return -1;
+	
+	while ((pdirent = readdir(taskdir))) {
+		pid_t curtid;
+
+		curtid = (pid_t)atoi(pdirent->d_name);
+		if (!curtid)
+			continue;
+
+		if (callback(curtid, arg))
+			break;
+	}
+
+	closedir(taskdir);
+	
+	return 0;
+}

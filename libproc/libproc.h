@@ -72,8 +72,8 @@ int proc_enumenviron(pid_t pid,
 int proc_enumcmdline(pid_t pid, int(*callback)(char *cmdarg, void *arg),
 		     void *arg);
 size_t proc_getcmdline(pid_t pid, char **pcmdlinebuf, size_t maxlen);
-int proc_enumthreads(int(*callback)(pid_t tid, void *arg), void *arg);
-size_t proc_getthreads(pid_t pid, pid_t **pthreads);
+int proc_enumthreads(pid_t pid, int(*callback)(pid_t tid, void *arg),
+		     void *arg);
 
 
 #endif

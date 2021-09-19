@@ -13,6 +13,12 @@ int enum_environ_cb(char *name, char *value, void *arg)
 	return 0;
 }
 
+int enum_threads_cb(pid_t tid, void *arg)
+{
+	printf("%d ", tid);
+	return 0;
+}
+
 int main()
 {
 	char *procpath;
@@ -41,6 +47,10 @@ int main()
 	proc_enumenviron(getpid(), enum_environ_cb, NULL);
 	proc_getcmdline(getpid(), &cmdline, 0);
 	printf("[*] Command Line: %s\n", cmdline);
+	
+	printf("[*] Threads: { ");
+	proc_enumthreads(getpid(), enum_threads_cb, NULL);
+	printf("}\n");
 
 	getchar();
 
