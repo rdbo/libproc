@@ -15,23 +15,29 @@
 #include <malloc.h>
 #include <sys/auxv.h>
 
-#define AT_MAX AT_MINSIGSTKSZ + 1
+#define AT_MAX 64 /* AT_MINSIGSTKSZ + 1 */
+
+struct environ {
+	char *name;
+	char *value;
+};
 
 struct proc {
 	pid_t id;
 	pid_t parent;
 	pid_t tracer;
-	unsigned long auxvals[AT_MAX];
+	unsigned long *auxvals;
 	char state;
 	char *platform;
 	char *path;
 	char *name;
-	struct envvar *env;
-	size_t nenv;
-	char *cmdline;
+	struct environ *environ;
+	size_t environ_len;
+	char **cmdline;
+	size_t cmdlen;
 	pid_t *threads;
 	size_t nthreads;
-	void *entry;
+	unsigned long entry;
 };
 
 struct module {
@@ -45,7 +51,7 @@ struct module {
 struct page {
 	void *base;
 	size_t size;
-	size_t offset;
+	unsigned long offset;
 	void *end;
 	int prot;
 	int flags;
@@ -74,6 +80,9 @@ int proc_enumcmdline(pid_t pid, int(*callback)(char *cmdarg, void *arg),
 size_t proc_getcmdline(pid_t pid, char **pcmdlinebuf, size_t maxlen);
 int proc_enumthreads(pid_t pid, int(*callback)(pid_t tid, void *arg),
 		     void *arg);
+unsigned long proc_getentry(pid_t pid);
+int proc_openproc(pid_t pid, struct proc *pproc);
+void proc_closeproc(struct proc *pproc);
 
 
 #endif

@@ -52,6 +52,8 @@ int main()
 	proc_enumthreads(getpid(), enum_threads_cb, NULL);
 	printf("}\n");
 
+	printf("[*] Entry: %p\n", (void *)proc_getentry(getpid()));
+
 	getchar();
 
 	return 0;

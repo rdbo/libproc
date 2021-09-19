@@ -507,3 +507,8 @@ int proc_enumthreads(pid_t pid, int(*callback)(pid_t tid, void *arg),
 	
 	return 0;
 }
+
+unsigned long proc_getentry(pid_t pid)
+{
+	return proc_getauxval(pid, AT_ENTRY);
+}
