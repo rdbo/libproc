@@ -56,25 +56,25 @@ struct page {
 	int flags;
 };
 
-int enum_processes(int(*callback)(pid_t pid, void *arg), void *arg);
-int check_process(pid_t pid);
-size_t get_processes(pid_t **ppids);
-pid_t get_process_parent(pid_t pid);
-pid_t get_process_tracer(pid_t pid);
-unsigned long get_process_auxv(pid_t pid, unsigned long type);
-int get_process_auxvals(pid_t pid, unsigned long(*auxvals)[AT_MAX]);
-uid_t get_process_uid(pid_t pid);
-uid_t get_process_euid(pid_t pid);
-gid_t get_process_gid(pid_t pid);
-gid_t get_process_egid(pid_t pid);
-char get_process_state(pid_t pid);
-unsigned long get_process_platform(pid_t pid);
-size_t get_process_path(pid_t pid, char **ppathbuf);
-size_t get_process_name(pid_t pid, char **pnamebuf);
-size_t get_process_env(pid_t pid, struct envvar **penvbuf);
-size_t get_process_cmdline(pid_t pid, char **pcmdline);
-int enum_threads(int(*callback)(pid_t tid, void *arg), void *arg);
-size_t get_process_threads(pid_t pid, pid_t **pthreads);
+int proc_enumpids(int(*callback)(pid_t pid, void *arg), void *arg);
+int proc_checkpid(pid_t pid);
+pid_t proc_getppid(pid_t pid);
+pid_t proc_gettracer(pid_t pid);
+int proc_enumauxvals(pid_t pid, int(*callback)(unsigned long type,
+		     unsigned long val, void *arg), void *arg);
+unsigned long proc_getauxval(pid_t pid, unsigned long type);
+uid_t proc_getuid(pid_t pid);
+uid_t proc_geteuid(pid_t pid);
+gid_t proc_getgid(pid_t pid);
+gid_t proc_getegid(pid_t pid);
+char proc_getstate(pid_t pid);
+unsigned long proc_getplatform(pid_t pid);
+size_t proc_getpath(pid_t pid, char **ppathbuf, size_t maxlen);
+size_t proc_getname(pid_t pid, char **pnamebuf, size_t maxlen);
+size_t proc_getenv(pid_t pid, struct envvar **penvbuf);
+size_t proc_getcmdline(pid_t pid, char **pcmdline);
+int proc_enumthreads(int(*callback)(pid_t tid, void *arg), void *arg);
+size_t proc_getthreads(pid_t pid, pid_t **pthreads);
 
 
 #endif
